@@ -23,55 +23,51 @@ local AhuCTConfig = {
 
 local AhuCTFrame = CreateFrame("Frame", "AhuCTFrame", UIParent)
 local myGUID = nil
-local sumHeal = 0
-local sumDmg = 0
-local hitsHeal = 0
-local hitsDmg = 0
+local stats = {
+   heal = {min = 0, max = 0, sum = 0, hits = 0},
+   dmg = {min = 0, max = 0, sum = 0, hits = 0}
+}
 
--- This would grow indefinitely
--- local function getAverage()
---    local sum = 0
---    local total = 0
---    for k,v in pairs(hits) do
---       sum = sum + v
---       total = total + 1
---    end
---    return sum/total
--- end
 local function getAverageHeal()
-   return sumHeal/hitsHeal
+   return stats.heal.sum / stats.heal.hits
 end
 
 local function getAverageDmg()
-   return sumDmg/hitsDmg
+   return stats.dmg.sum / stats.dmg.hits
 end
 
 local function getPercent(amount, maxHealth)
    local percent = math.floor((amount/maxHealth)*1000) / 10
-   -- if percent > 1 then
-   --    percent = math.floor(percent)
-   -- else
-   --    -- fmt: .8
-   --    percent = string.sub(string.format("%.1f", percent), 2)
-   -- end
    return percent
 end
 
-local function getHealPercent(amount, destName)
-   hitsHeal = hitsHeal + 1
-   sumHeal = sumHeal + amount
-   local maxHealth = UnitHealthMax(destName)
-   -- Still not sure how this comes through, but it does sometimes
-   if maxHealth == 0 then
-      return "+"
+local function getPercentHeal(amount, destName)
+   if not destName then
+      return nil
    end
+   local maxHealth = UnitHealthMax(destName)
+   if maxHealth == 0 then
+      return nil
+   end
+   stats.heal.hits = stats.heal.hits + 1
+   stats.heal.sum = stats.heal.sum + amount
    return getPercent(amount, maxHealth)
 end
 
-local function getDmgPercent(amount, destGUID)
-   hitsDmg = hitsDmg + 1
-   sumDmg = sumDmg + amount
-   local maxHealth = UnitHealthMax(UnitTokenFromGUID(destGUID))
+local function getPercentDmg(amount, destGUID)
+   if not destGUID then
+      return nil
+   end
+   local target = UnitTokenFromGUID(destGUID)
+   if not target then
+      return nil
+   end
+   local maxHealth = UnitHealthMax(target)
+   if maxHealth == 0 then
+      return nil
+   end
+   stats.dmg.hits = stats.dmg.hits + 1
+   stats.dmg.sum = stats.dmg.sum + amount
    return getPercent(amount, maxHealth)
 end
 
@@ -189,8 +185,10 @@ AhuCTFrame:SetScript("OnEvent", function(_, event, ...)
 
     elseif event == "PLAYER_ENTERING_WORLD" then
         myGUID = UnitGUID("player")
-        hits = 0
-        sum = 0
+        stats = {
+           heal = {min = 0, max = 0, sum = 0, hits = 0},
+           dmg = {min = 0, max = 0, sum = 0, hits = 0}
+        }
 
     elseif event == "PLAYER_LOGOUT" then
        -- can save config vars here
@@ -226,7 +224,10 @@ AhuCTFrame:SetScript("OnEvent", function(_, event, ...)
         end
 
         if (subEvent == "SPELL_HEAL" or subEvent == "SPELL_PERIODIC_HEAL") and amount and amount > 0 then
-            local text = getHealPercent(amount, destName)
+            local text = getPercentHeal(amount, destName)
+            if not text then
+               return
+            end
 
             if spellID then
                 local iconPath = C_Spell.GetSpellTexture(spellID)
@@ -241,7 +242,10 @@ AhuCTFrame:SetScript("OnEvent", function(_, event, ...)
 
         -- DoT
         if subEvent == "SPELL_PERIODIC_DAMAGE" and amount and amount > 0 then
-            local text = getDmgPercent(amount, destGUID)
+            local text = getPercentDmg(amount, destGUID)
+            if not text then
+               return
+            end
 
             if spellID then
                local iconPath = C_Spell.GetSpellTexture(spellID)
@@ -258,7 +262,10 @@ AhuCTFrame:SetScript("OnEvent", function(_, event, ...)
            and amount and amount > 0 then
 
            if critical then
-              local text = getDmgPercent(amount, destGUID)
+              local text = getPercentDmg(amount, destGUID)
+              if not text then
+                 return
+              end
 
               if (subEvent ~= "SWING_DAMAGE") and spellID then
                  local iconPath = C_Spell.GetSpellTexture(spellID)
@@ -280,7 +287,10 @@ AhuCTFrame:SetScript("OnEvent", function(_, event, ...)
             elseif spellSchool == 2 then dmgType = "holy"
             end
 
-            local text = getDmgPercent(amount, destGUID)
+            local text = getPercentDmg(amount, destGUID)
+            if not text then
+               return
+            end
 
             if (subEvent ~= "SWING_DAMAGE") and spellID then
                local iconPath = C_Spell.GetSpellTexture(spellID)
