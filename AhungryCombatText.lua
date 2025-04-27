@@ -117,24 +117,29 @@ function showText(text, amount, color, dmgType)
    local average = getAverage(dmgType)
    local firstQuartile = getFirstQuartile(dmgType)
    local thirdQuartile = getThirdQuartile(dmgType)
+   local anchorY = anchor.y
 
    if amount >= thirdQuartile then
       fontSize = math.floor(fontSize * 1.5)
       duration = math.floor(duration * 2)
+      anchorY = anchorY + 0
    elseif amount >= average then
       fontSize = math.floor(fontSize * 1.25)
-      duration = math.floor(duration * 1.75)
+      duration = math.floor(duration * 1.5)
+      anchorY = anchorY - 20
    elseif amount >= firstQuartile then
-      fontSize = math.floor(fontSize / 1.25)
-      duration = math.floor(duration / 1.75)
+      fontSize = math.floor(fontSize * 1)
+      duration = math.floor(duration * 1)
+      anchorY = anchorY - 40
    else
-      fontSize = math.floor(fontSize / 1.5)
-      duration = math.floor(duration / 2)
+      fontSize = math.floor(fontSize * 0.75)
+      duration = math.floor(duration * 0.5)
+      anchorY = anchorY - 60
    end
 
    local f = CreateFrame("Frame", nil, UIParent)
    f:SetSize(200, 50)
-   f:SetPoint("CENTER", UIParent, "CENTER", anchor.x, anchor.y)
+   f:SetPoint("CENTER", UIParent, "CENTER", anchor.x, anchorY)
 
    local finalText, iconID, texW, texH, atlasMode = getTexture(text)
    finalText = finalText.."%"
@@ -162,16 +167,15 @@ function showText(text, amount, color, dmgType)
    end
 
    -- Animation
-   local xOffset = -50
+   local xOffset = -600
    if dmgType == "dmg" then
-      xOffset = 50
+      xOffset = 600
    end
    local anim = f:CreateAnimationGroup()
 
    local move = anim:CreateAnimation("Translation")
-   -- move:SetOffset(0, AhuCTConfig.animation.moveOffset)
-   move:SetOffset(xOffset, -300)
-   -- move:SetOffset(math.random(-200,200), math.random(-200,200))
+   -- move:SetOffset(xOffset, -300)
+   move:SetOffset(xOffset, 0)
    move:SetDuration(duration)
    move:SetSmoothing("OUT")
 
