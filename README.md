@@ -9,4 +9,7 @@ horizontal scroll)
 Matthew Carter <m@ahungry.com>
 
 # License
-GNU GPLv3 or later
+GPLv3 or later
+
+Distributed under the GNU General Public License either version 3.0 or (at
+your option) any later version.
