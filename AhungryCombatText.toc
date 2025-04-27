@@ -1,0 +1,8 @@
+## Interface: 100105
+## Title: AhungryCombatText
+## Author: Matthew Carter
+## Version: 0.0.1
+## Notes: Show combat text as percentages.
+## SavedVariables: AhuCT_SavedConfig
+
+AhungryCombatText.lua
