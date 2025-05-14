@@ -1,7 +1,7 @@
 local AhuCTConfig = {
    anchors = {
-      dmg  = { x = 300,  y = -150 },
-      heal = { x = -300,  y = -150 },
+      dmg  = { x = 30,  y = -150 },
+      heal = { x = -30,  y = -150 },
    },
    duration = 4,
    fontSize = 16,
@@ -141,7 +141,7 @@ function showText(text, amount, color, dmgType)
    f:SetSize(200, 50)
    f:SetPoint("CENTER", UIParent, "CENTER", anchor.x, anchorY)
 
-   local finalText, iconID, texW, texH, atlasMode = getTexture(text)
+   local finalText, iconID, texW, texH, atlasMode = getTexture(tostring(text))
    finalText = finalText.."%"
 
    local fs = f:CreateFontString(nil, "OVERLAY")
@@ -285,6 +285,12 @@ AhuCTFrame:SetScript(
 
             showText(text, amount, AhuCTConfig.color.dot, "dmg")
             return
+         end
+
+         -- Destructuring the events, the amount for an auto attack is in a diff slot
+         if subEvent == "SWING_DAMAGE" and amount == nil and spellID and spellID > 0 then
+            local text = getPercentDmg(spellID, destGUID)
+            return showText(text, spellID, AhuCTConfig.color.default, "dmg")
          end
 
          if (subEvent == "SWING_DAMAGE" or subEvent == "SPELL_DAMAGE" or subEvent == "RANGE_DAMAGE")
